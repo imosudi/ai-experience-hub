@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Webpage Summarizer Agent{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 pb-5">
+    <div class="mb-4">
+        <h1 class="h2 mb-1">Webpage Summarizer Agent</h1>
+        <p class="text-muted mb-0">Deploy an autonomous AI Agent to download webpages, strip advertisements, and produce key summaries and action logs.</p>
+    </div>
+
+    <!-- URL Input row -->
+    <div class="card glass-card mb-5">
+        <div class="glass-card-body p-4">
+            <form id="agent-form">
+                <label for="url-input" class="form-label fw-semibold">Target Webpage URL</label>
+                <div class="input-group input-group-lg">
+                    <span class="input-group-text bg-tertiary border-secondary-subtle text-muted"><i class="bi bi-link-45deg"></i></span>
+                    <input type="url" class="form-control form-control-custom" id="url-input" placeholder="https://example.com/article" required>
+                    <button class="btn btn-custom-primary px-4 fw-bold" type="submit" id="run-btn">
+                        <i class="bi bi-play-fill"></i> Run Agent
+                    </button>
+                </div>
+                <div class="form-text text-muted mt-2">
+                    <i class="bi bi-shield-lock-fill text-success"></i> SSRF Protection is active. Internal or private network IP scopes are filtered out.
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Results Panel -->
+    <div class="agent-canvas">
+        <!-- Placeholder -->
+        <div class="card glass-card text-center text-muted py-5" id="agent-placeholder">
+            <div class="py-5">
+                <i class="bi bi-robot display-3 mb-3 d-block text-accent"></i>
+                <h5 class="fw-bold">Summarizer Idle</h5>
+                <p class="small">Enter an article or document URL above and deploy the agent to fetch insights.</p>
+            </div>
+        </div>
+
+        <!-- Loading spinner -->
+        <div class="card glass-card text-center py-5 d-none" id="agent-loading">
+            <div class="py-5">
+                <div class="spinner-border text-accent mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
+                <h5 class="fw-bold">Agent Executing Pipeline...</h5>
+                <p class="text-muted small mb-0">Downloading page -> Stripping ads/styles -> Rendering text with Muse Spark.</p>
+            </div>
+        </div>
+
+        <!-- Rendered results card (hidden until fetched) -->
+        <div class="d-none animate-fade-in" id="agent-results">
+            <!-- Metadata Headers -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-8">
+                    <div class="card glass-card h-100">
+                        <div class="glass-card-body">
+                            <span class="badge bg-accent mb-2">Web Page Scraped</span>
+                            <h3 class="fw-bold mb-2" id="agent-meta-title">-</h3>
+                            <a href="#" target="_blank" class="text-decoration-none font-monospace small text-accent" id="agent-meta-url">-</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card glass-card h-100">
+                        <div class="glass-card-body d-flex flex-column justify-content-center">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="bi bi-chat-square-text text-accent"></i>
+                                <span class="fw-semibold" id="agent-meta-words">-</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="bi bi-book-fill text-success"></i>
+                                <span class="fw-semibold" id="agent-meta-readtime">-</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-lightning-fill text-info"></i>
+                                <span>Agent Latency: <strong id="agent-meta-latency" class="font-monospace">-</strong></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content grids -->
+            <div class="row g-4">
+                <!-- Summary & Key points (8 cols) -->
+                <div class="col-lg-8">
+                    <!-- Concise summary -->
+                    <div class="card glass-card mb-4">
+                        <div class="glass-card-header">
+                            <span><i class="bi bi-body-text text-accent me-2"></i> Concise Summary</span>
+                        </div>
+                        <div class="glass-card-body lead fs-6 lh-lg" id="agent-summary-block">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Key points -->
+                    <div class="card glass-card">
+                        <div class="glass-card-header">
+                            <span><i class="bi bi-list-check text-accent me-2"></i> Key Outlined Points</span>
+                        </div>
+                        <div class="glass-card-body">
+                            <ul class="mb-0 ps-3 text-muted" id="agent-keypoints-block">
+                                <!-- Populated dynamically -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action items checklist (4 cols) -->
+                <div class="col-lg-4">
+                    <div class="card glass-card h-100">
+                        <div class="glass-card-header">
+                            <span><i class="bi bi-check2-square text-accent me-2"></i> Action Items & Takeaways</span>
+                        </div>
+                        <div class="glass-card-body">
+                            <ul class="list-unstyled mb-0" id="agent-actionitems-block">
+                                <!-- Populated dynamically -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Agent controller script -->
+<script src="{{ url_for('static', filename='js/agent.js') }}"></script>
+{% endblock %}

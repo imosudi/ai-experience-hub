@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Vision Analysis{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 pb-5">
+    <div class="mb-4">
+        <h1 class="h2 mb-1">Vision Analysis</h1>
+        <p class="text-muted mb-0">Upload images to analyze scenes, identify object boxes, perform optical OCR text recognition, and read metadata.</p>
+    </div>
+
+    <div class="row g-4">
+        <!-- Upload & Preview Pane (5 Cols) -->
+        <div class="col-lg-5">
+            <div class="card glass-card mb-4">
+                <div class="glass-card-header">
+                    <span><i class="bi bi-cloud-arrow-up text-accent me-2"></i> Image File Upload</span>
+                </div>
+                <div class="glass-card-body">
+                    <!-- Drop Zone -->
+                    <div class="upload-drop-zone mb-3" id="drop-zone">
+                        <i class="bi bi-image-fill upload-icon text-accent"></i>
+                        <h5>Drag & Drop Image Here</h5>
+                        <p class="text-muted small">Supports PNG, JPG, JPEG, and WEBP (Max 5MB)</p>
+                        <button type="button" class="btn btn-sm btn-outline-accent mt-2" id="select-file-btn">
+                            Browse Files
+                        </button>
+                        <input type="file" id="file-input" class="d-none" accept=".png, .jpg, .jpeg, .webp">
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="progress-container mb-3 d-none" id="progress-container">
+                        <label class="small text-muted mb-1">Running Muse Spark Vision inference...</label>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar bg-accent progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%" id="progress-bar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+
+                    <!-- Image Preview container -->
+                    <div class="preview-container d-none" id="preview-container">
+                        <label class="small text-muted mb-2 d-block fw-semibold">Local Image Preview</label>
+                        <div class="ratio ratio-16x9 bg-dark rounded overflow-hidden border border-secondary">
+                            <img src="" id="preview-image" class="object-fit-contain" alt="Upload Preview">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Metadata details card -->
+            <div class="card glass-card d-none" id="results-card">
+                <div class="glass-card-header">
+                    <span><i class="bi bi-info-circle text-accent me-2"></i> Image File Metadata</span>
+                </div>
+                <div class="glass-card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-dark mb-0 table-hover align-middle">
+                            <tbody>
+                                <tr>
+                                    <td class="ps-4 fw-semibold text-muted small">File Name</td>
+                                    <td class="pe-4 text-end text-truncate font-monospace" id="meta-filename" style="max-width: 150px;">-</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-4 fw-semibold text-muted small">File Size</td>
+                                    <td class="pe-4 text-end font-monospace" id="meta-size">-</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-4 fw-semibold text-muted small">Resolution</td>
+                                    <td class="pe-4 text-end font-monospace" id="meta-resolution">-</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-4 fw-semibold text-muted small">Format</td>
+                                    <td class="pe-4 text-end font-monospace" id="meta-format">-</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-4 fw-semibold text-muted small">SDK Latency</td>
+                                    <td class="pe-4 text-end font-monospace text-info" id="meta-latency">-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vision Results Pane (7 Cols) -->
+        <div class="col-lg-7">
+            <!-- Results are hidden until response is returned -->
+            <div class="results-pane h-100">
+                <!-- If no results yet -->
+                <div class="card glass-card h-100 d-flex align-items-center justify-content-center py-5 text-center text-muted" id="results-placeholder">
+                    <div class="py-5">
+                        <i class="bi bi-eye-slash-fill display-4 mb-3 d-block text-accent"></i>
+                        <h4 class="fw-bold">No Image Analyzed</h4>
+                        <p class="small">Upload or drop an image file in the left pane to execute Muse Spark Vision analysis.</p>
+                    </div>
+                </div>
+
+                <!-- Analysis results card (populated dynamically) -->
+                <div class="d-none" id="results-details-container">
+                    <div class="card glass-card mb-4">
+                        <div class="glass-card-header">
+                            <span><i class="bi bi-card-text text-accent me-2"></i> Scene Summary & Description</span>
+                            <span id="result-confidence"></span>
+                        </div>
+                        <div class="glass-card-body">
+                            <h6 class="fw-bold text-accent mb-2">Scene Description:</h6>
+                            <p class="mb-4 lead fs-6" id="result-description">-</p>
+                            
+                            <h6 class="fw-bold text-accent mb-2">Detailed Summary:</h6>
+                            <p class="mb-0 text-muted" id="result-summary">-</p>
+                        </div>
+                    </div>
+
+                    <!-- Detected Objects Table Card -->
+                    <div class="card glass-card mb-4">
+                        <div class="glass-card-header">
+                            <span><i class="bi bi-box-seam text-accent me-2"></i> Detected Objects</span>
+                        </div>
+                        <div class="glass-card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-dark table-hover mb-0 align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col" class="ps-4">Object Label</th>
+                                            <th scope="col" class="pe-4">Inference Confidence</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="result-objects-table">
+                                        <!-- Populated via javascript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- OCR text box Card -->
+                    <div class="card glass-card">
+                        <div class="glass-card-header">
+                            <span><i class="bi bi-blockquote-left text-accent me-2"></i> Optical Character Recognition (OCR) Text</span>
+                        </div>
+                        <div class="glass-card-body" id="result-ocr">
+                            <!-- Populated via javascript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Vision processing controller script -->
+<script src="{{ url_for('static', filename='js/vision.js') }}"></script>
+<script>
+    // Bind results visibility on load
+    document.addEventListener("DOMContentLoaded", () => {
+        const fileInput = document.getElementById("file-input");
+        const resultsCard = document.getElementById("results-card");
+        const resultsDetailsContainer = document.getElementById("results-details-container");
+        const resultsPlaceholder = document.getElementById("results-placeholder");
+
+        // Hook observers
+        const observer = new MutationObserver(() => {
+            if (!resultsCard.classList.contains("d-none")) {
+                resultsDetailsContainer.classList.remove("d-none");
+                resultsPlaceholder.classList.add("d-none");
+            } else {
+                resultsDetailsContainer.classList.add("d-none");
+                resultsPlaceholder.classList.remove("d-none");
+            }
+        });
+
+        observer.observe(resultsCard, { attributes: true, attributeFilter: ["class"] });
+    });
+</script>
+{% endblock %}

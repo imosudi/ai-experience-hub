@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Streaming Chat{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 pb-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h2 mb-1">Streaming Chat</h1>
+            <p class="text-muted mb-0">Multi-turn chat interface with real-time Server-Sent Events token stream.</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Chat Area (8 Cols) -->
+        <div class="col-lg-8">
+            <div class="card glass-card chat-container">
+                <!-- Chat History Log -->
+                <div class="chat-history" id="chat-history">
+                    <div class="text-center text-muted my-5">
+                        <i class="bi bi-chat-left-dots-fill display-4 mb-3 d-block text-accent"></i>
+                        <h4 class="fw-bold">Start a Conversation</h4>
+                        <p class="small">Ask Muse Spark questions, write scripts, or construct coding workflows.</p>
+                    </div>
+                </div>
+
+                <!-- Input Panel -->
+                <form id="chat-form" class="mt-2">
+                    <div class="input-group">
+                        <textarea class="form-control form-control-custom" id="chat-input" rows="2" placeholder="Send a message to Muse Spark... (Press Enter to send, Shift+Enter for new line)" style="resize: none;"></textarea>
+                        <button class="btn btn-custom-primary px-4" type="submit" id="send-btn">
+                            <i class="bi bi-send-fill"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Parameters Settings Card (4 Cols) -->
+        <div class="col-lg-4">
+            <div class="card glass-card">
+                <div class="glass-card-header">
+                    <span><i class="bi bi-sliders text-accent me-2"></i> Model Parameters</span>
+                </div>
+                <div class="glass-card-body">
+                    <!-- Temperature -->
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <label for="chat-temperature" class="form-label mb-0 fw-semibold">Temperature</label>
+                            <span class="badge bg-accent font-monospace" id="temperature-val">{{ settings.temperature }}</span>
+                        </div>
+                        <input type="range" class="form-range" id="chat-temperature" min="0.0" max="2.0" step="0.1" value="{{ settings.temperature }}">
+                        <div class="form-text text-muted small d-flex justify-content-between">
+                            <span>Factual (0.0)</span>
+                            <span>Creative (2.0)</span>
+                        </div>
+                    </div>
+
+                    <!-- Max Tokens -->
+                    <div class="mb-4">
+                        <label for="chat-max-tokens" class="form-label fw-semibold">Max Tokens Limit</label>
+                        <input type="number" class="form-control form-control-custom" id="chat-max-tokens" min="1" max="4000" value="{{ settings.max_tokens }}">
+                        <div class="form-text text-muted small">Max tokens generated per completion (up to 4000).</div>
+                    </div>
+
+                    <!-- System Instructions -->
+                    <div class="mb-4">
+                        <label for="chat-system-prompt" class="form-label fw-semibold">System Instructions</label>
+                        <textarea class="form-control form-control-custom" id="chat-system-prompt" rows="4" style="resize: none;">{{ settings.system_prompt }}</textarea>
+                        <div class="form-text text-muted small">Behavior overrides and context guidelines injected into the assistant stack.</div>
+                    </div>
+
+                    <hr class="border-secondary-subtle">
+
+                    <!-- Actions -->
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-warning flex-grow-1" id="chat-regenerate" disabled>
+                            <i class="bi bi-arrow-clockwise"></i> Regenerate
+                        </button>
+                        <button class="btn btn-outline-danger flex-grow-1" id="chat-clear">
+                            <i class="bi bi-trash-fill"></i> Clear Log
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Shortcuts Card helper -->
+            <div class="card glass-card mt-3">
+                <div class="glass-card-body p-3 text-muted small">
+                    <h6 class="fw-semibold text-primary-emphasis mb-2"><i class="bi bi-keyboard"></i> Keyboard Shortcuts</h6>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Send Message</span>
+                        <kbd class="font-monospace text-black bg-light">Enter</kbd>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>New Line</span>
+                        <kbd class="font-monospace text-black bg-light">Shift + Enter</kbd>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chat logic script -->
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+{% endblock %}

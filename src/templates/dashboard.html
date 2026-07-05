@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 pb-5">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h2 mb-1">Explorer Dashboard</h1>
+            <p class="text-muted mb-0">Overview of the Meta Muse Spark API telemetry and integration toolsets.</p>
+        </div>
+        <div class="telemetry-badge px-3 py-2 font-monospace">
+            <i class="bi bi-clock-history"></i> Current Time: 2026-07-05
+        </div>
+    </div>
+
+    <!-- Quick Stats Cards Row -->
+    <div class="row g-4 mb-5">
+        <div class="col-xl-3 col-sm-6">
+            <div class="card glass-card h-100">
+                <div class="glass-card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-muted small d-block mb-1">Total API Requests</span>
+                        <h3 class="mb-0 fw-bold">{{ stats.total_requests }}</h3>
+                    </div>
+                    <div class="chat-avatar bg-primary-subtle text-primary rounded-3">
+                        <i class="bi bi-activity h4 mb-0"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-sm-6">
+            <div class="card glass-card h-100">
+                <div class="glass-card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-muted small d-block mb-1">Successful Requests</span>
+                        <h3 class="mb-0 fw-bold text-success">{{ stats.successful_requests }}</h3>
+                    </div>
+                    <div class="chat-avatar bg-success-subtle text-success rounded-3">
+                        <i class="bi bi-check-circle-fill h4 mb-0"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-sm-6">
+            <div class="card glass-card h-100">
+                <div class="glass-card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-muted small d-block mb-1">Failed Requests</span>
+                        <h3 class="mb-0 fw-bold text-danger">{{ stats.failed_requests }}</h3>
+                    </div>
+                    <div class="chat-avatar bg-danger-subtle text-danger rounded-3">
+                        <i class="bi bi-exclamation-triangle-fill h4 mb-0"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-sm-6">
+            <div class="card glass-card h-100">
+                <div class="glass-card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-muted small d-block mb-1">Average Response Latency</span>
+                        <h3 class="mb-0 fw-bold text-info font-monospace">{{ stats.average_latency }}s</h3>
+                    </div>
+                    <div class="chat-avatar bg-info-subtle text-info rounded-3">
+                        <i class="bi bi-lightning-charge-fill h4 mb-0"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Showcase Grid -->
+    <h3 class="h4 mb-4">Integrated AI Modules</h3>
+    <div class="row g-4 mb-5">
+        <div class="col-md-6 col-lg-3">
+            <div class="card glass-card h-100">
+                <div class="glass-card-body d-flex flex-column h-100">
+                    <i class="bi bi-chat-left-text text-accent display-6 mb-3"></i>
+                    <h5 class="card-title fw-bold">Streaming Chat</h5>
+                    <p class="card-text text-muted small flex-grow-1">Interactive chatbot showcasing token streams, parameter configurations, and system instruction overrides.</p>
+                    <a href="{{ url_for('chat.chat') }}" class="btn btn-custom-primary w-100 mt-3">Open Chat</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card glass-card h-100">
+                <div class="glass-card-body d-flex flex-column h-100">
+                    <i class="bi bi-eye text-success display-6 mb-3"></i>
+                    <h5 class="card-title fw-bold">Vision Analysis</h5>
+                    <p class="card-text text-muted small flex-grow-1">Upload images to get automated visual descriptions, identify objects, extract text from OCR, and read metadata.</p>
+                    <a href="{{ url_for('vision.vision') }}" class="btn btn-custom-primary w-100 mt-3">Open Vision</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card glass-card h-100">
+                <div class="glass-card-body d-flex flex-column h-100">
+                    <i class="bi bi-palette text-warning display-6 mb-3"></i>
+                    <h5 class="card-title fw-bold">Image Gen</h5>
+                    <p class="card-text text-muted small flex-grow-1">Generate dynamic digital art from text prompts, custom styles, dimension aspect ratios, quality configurations, and seeds.</p>
+                    <a href="{{ url_for('image_gen.image_gen') }}" class="btn btn-custom-primary w-100 mt-3">Open Generator</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card glass-card h-100">
+                <div class="glass-card-body d-flex flex-column h-100">
+                    <i class="bi bi-robot text-danger display-6 mb-3"></i>
+                    <h5 class="card-title fw-bold">Web Page Agent</h5>
+                    <p class="card-text text-muted small flex-grow-1">Autonomous page scraper that processes documents, cleans scripts, and delivers summarized points and action logs.</p>
+                    <a href="{{ url_for('agent.agent_view') }}" class="btn btn-custom-primary w-100 mt-3">Open Scraper</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity log -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card glass-card">
+                <div class="glass-card-header">
+                    <span><i class="bi bi-list-task text-accent me-2"></i> Recent Telemetry Activity</span>
+                    <span class="badge bg-secondary font-monospace">Last 25 requests</span>
+                </div>
+                <div class="glass-card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-dark mb-0 align-middle">
+                            <thead class="table-group-divider border-secondary-subtle">
+                                <tr>
+                                    <th scope="col" class="ps-4">Timestamp</th>
+                                    <th scope="col">Action Details</th>
+                                    <th scope="col">Latency (Sec)</th>
+                                    <th scope="col" class="pe-4">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if stats.recent_activities %}
+                                    {% for act in stats.recent_activities %}
+                                    <tr>
+                                        <td class="ps-4 font-monospace small text-muted">{{ act.timestamp }}</td>
+                                        <td class="fw-semibold">{{ act.action }}</td>
+                                        <td class="font-monospace text-info">{{ act.latency_sec }}s</td>
+                                        <td class="pe-4">
+                                            <span class="badge bg-{{ 'success' if act.status == 'Success' else 'danger' }}">
+                                                {{ act.status }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted py-4">No recent API activities found. Trigger a module to collect telemetry.</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

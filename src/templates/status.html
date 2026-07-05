@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}API Status{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 pb-5">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h2 mb-1">API Integration Status</h1>
+            <p class="text-muted mb-0">Diagnostic page to inspect connectivity, latency logs, and operational configuration modes.</p>
+        </div>
+        <button class="btn btn-custom-primary" id="refresh-status-btn">
+            <i class="bi bi-arrow-clockwise"></i> Run Diagnostic
+        </button>
+    </div>
+
+    <!-- Status summary block -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-6">
+            <div class="card glass-card h-100">
+                <div class="glass-card-header">
+                    <span><i class="bi bi-activity text-accent me-2"></i> Connectivity Report</span>
+                </div>
+                <div class="glass-card-body">
+                    <div class="d-flex align-items-center gap-3 mb-4">
+                        <div class="status-indicator">
+                            <span class="position-relative d-inline-flex">
+                                <span class="align-self-center rounded-circle {% if status_data.online %}bg-success{% else %}bg-danger{% endif %}" id="status-dot" style="width: 16px; height: 16px; display: inline-block;"></span>
+                            </span>
+                        </div>
+                        <div>
+                            <h4 class="mb-0 fw-bold" id="status-title">{% if status_data.online %}All Systems Operational{% else %}Service Connection Failed{% endif %}</h4>
+                            <p class="text-muted small mb-0" id="status-timestamp">Last checked: {{ status_data.timestamp }}</p>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="small text-muted mb-1">Integration Mode</label>
+                        <div class="fw-semibold" id="status-mode">{{ status_data.mode }}</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="small text-muted mb-1">Target Endpoint URI</label>
+                        <div class="font-monospace small" id="status-endpoint">{{ status_data.endpoint }}</div>
+                    </div>
+
+                    <div class="mb-0">
+                        <label class="small text-muted mb-1">Connection Latency</label>
+                        <div class="font-monospace text-info fw-bold" id="status-latency">{% if status_data.latency_ms > 0 %}{{ status_data.latency_ms }} ms{% else %}N/A (Local Mock){% endif %}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card glass-card h-100">
+                <div class="glass-card-header">
+                    <span><i class="bi bi-journal-code text-accent me-2"></i> Operational Details</span>
+                </div>
+                <div class="glass-card-body">
+                    <div class="mb-4">
+                        <label class="small text-muted mb-1">Status Message</label>
+                        <p class="mb-0 font-monospace text-light bg-dark p-3 rounded small" id="status-details">
+                            {{ status_data.details }}
+                        </p>
+                    </div>
+
+                    <h6 class="fw-bold mb-2">Diagnostic Guidelines:</h6>
+                    <ul class="text-muted small ps-3">
+                        <li class="mb-1"><strong>Simulator Mode:</strong> Selected when <code>MUSE_SPARK_API_KEY=demo</code>. Requests are simulated inside the SDK layer with zero network requirements.</li>
+                        <li class="mb-1"><strong>Cloud-Ready Mode:</strong> Requires setting a valid API key and base URL in your <code>.env</code> file.</li>
+                        <li class="mb-1"><strong>Timeouts:</strong> Real API calls are configured with a strict 30-second connection timeout to avoid hangs.</li>
+                        <li><strong>Rate Limiting:</strong> Endpoints are throttled dynamically to prevent client-side abuse (Flask-Limiter).</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const refreshBtn = document.getElementById("refresh-status-btn");
+        const statusDot = document.getElementById("status-dot");
+        const statusTitle = document.getElementById("status-title");
+        const statusTimestamp = document.getElementById("status-timestamp");
+        const statusMode = document.getElementById("status-mode");
+        const statusEndpoint = document.getElementById("status-endpoint");
+        const statusLatency = document.getElementById("status-latency");
+        const statusDetails = document.getElementById("status-details");
+
+        if (refreshBtn) {
+            refreshBtn.addEventListener("click", async () => {
+                refreshBtn.setAttribute("disabled", "true");
+                refreshBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Running...';
+
+                try {
+                    const response = await fetch("/api-status", {
+                        headers: {
+                            "X-Requested-With": "XMLHttpRequest"
+                        }
+                    });
+
+                    if (!response.ok) throw new Error("HTTP error " + response.status);
+
+                    const data = await response.json();
+
+                    // Update UI elements
+                    statusTimestamp.textContent = "Last checked: " + data.timestamp;
+                    statusMode.textContent = data.mode;
+                    statusEndpoint.textContent = data.endpoint;
+                    statusDetails.textContent = data.details;
+
+                    if (data.online) {
+                        statusDot.className = "align-self-center rounded-circle bg-success";
+                        statusTitle.textContent = "All Systems Operational";
+                    } else {
+                        statusDot.className = "align-self-center rounded-circle bg-danger";
+                        statusTitle.textContent = "Service Connection Failed";
+                    }
+
+                    if (data.latency_ms > 0) {
+                        statusLatency.textContent = data.latency_ms + " ms";
+                    } else {
+                        statusLatency.textContent = "N/A (Local Mock)";
+                    }
+
+                } catch (err) {
+                    console.error("Diagnostic request failed: ", err);
+                } finally {
+                    refreshBtn.removeAttribute("disabled");
+                    refreshBtn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Run Diagnostic';
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

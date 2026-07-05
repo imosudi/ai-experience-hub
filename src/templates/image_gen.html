@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Image Generation{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 pb-5">
+    <div class="mb-4">
+        <h1 class="h2 mb-1">Image Generation</h1>
+        <p class="text-muted mb-0">Generate high-fidelity digital art from prompts using Meta Muse Spark Image synthesis.</p>
+    </div>
+
+    <!-- Generator Row -->
+    <div class="row g-4 mb-5">
+        <!-- Configuration form pane (4 cols) -->
+        <div class="col-lg-4">
+            <div class="card glass-card h-100">
+                <div class="glass-card-header">
+                    <span><i class="bi bi-sliders text-accent me-2"></i> Generation Parameters</span>
+                </div>
+                <div class="glass-card-body">
+                    <form id="gen-form">
+                        <!-- Prompt -->
+                        <div class="mb-3">
+                            <label for="prompt-input" class="form-label fw-semibold">Text Prompt</label>
+                            <textarea class="form-control form-control-custom" id="prompt-input" rows="4" placeholder="Describe the image you want to generate in detail..." required style="resize: none;"></textarea>
+                        </div>
+
+                        <!-- Negative Prompt -->
+                        <div class="mb-3">
+                            <label for="neg-prompt-input" class="form-label fw-semibold">Negative Prompt <span class="text-muted small">(Optional)</span></label>
+                            <input type="text" class="form-control form-control-custom" id="neg-prompt-input" placeholder="blurry, distorted, low quality, text...">
+                        </div>
+
+                        <!-- Style Selection -->
+                        <div class="mb-3">
+                            <label for="style-select" class="form-label fw-semibold">Artistic Style</label>
+                            <select class="form-select form-control-custom" id="style-select">
+                                <option value="photorealistic" selected>Photorealistic</option>
+                                <option value="synthwave">Synthwave Grid</option>
+                                <option value="cyberpunk">Cyberpunk Neon</option>
+                                <option value="watercolor">Soft Watercolor</option>
+                                <option value="pixelart">Retro Pixel Art</option>
+                                <option value="anime">Anime / Manga</option>
+                                <option value="3d-render">3D Render Graphic</option>
+                                <option value="abstract">Modern Abstract</option>
+                            </select>
+                        </div>
+
+                        <!-- Image Dimensions Select -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label for="size-select" class="form-label fw-semibold">Dimensions</label>
+                                <select class="form-select form-control-custom" id="size-select">
+                                    <option value="512x512" selected>Square (512x512)</option>
+                                    <option value="1024x1024">Square HD (1024x1024)</option>
+                                    <option value="768x512">Landscape (768x512)</option>
+                                    <option value="512x768">Portrait (512x768)</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label for="quality-select" class="form-label fw-semibold">Quality Level</label>
+                                <select class="form-select form-control-custom" id="quality-select">
+                                    <option value="standard" selected>Standard</option>
+                                    <option value="hd">High Definition</option>
+                                    <option value="draft">Fast Draft</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Numeric Seed -->
+                        <div class="mb-4">
+                            <label for="seed-input" class="form-label fw-semibold">Numeric Seed <span class="text-muted small">(Optional)</span></label>
+                            <input type="number" class="form-control form-control-custom" id="seed-input" placeholder="e.g. 42 (blank for random)">
+                        </div>
+
+                        <button type="submit" class="btn btn-custom-primary w-100 py-2 fw-bold" id="generate-btn">
+                            <i class="bi bi-magic"></i> Generate Spark
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Canvas Output pane (8 cols) -->
+        <div class="col-lg-8">
+            <div class="card glass-card h-100 d-flex flex-column justify-content-between">
+                <div class="glass-card-header">
+                    <span><i class="bi bi-image text-accent me-2"></i> Image Canvas Output</span>
+                </div>
+                
+                <div class="glass-card-body d-flex align-items-center justify-content-center flex-grow-1" id="image-canvas" style="min-height: 400px; background-color: rgba(0,0,0,0.2);">
+                    
+                    <!-- Placeholder graphic -->
+                    <div class="text-center text-muted" id="canvas-placeholder">
+                        <i class="bi bi-palette-fill display-2 mb-3 d-block text-accent"></i>
+                        <h5 class="fw-bold">Image Canvas Empty</h5>
+                        <p class="small mb-0">Select styling options and hit Generate in the left configuration panel.</p>
+                    </div>
+
+                    <!-- Glowing loader (hidden) -->
+                    <div class="text-center d-none" id="canvas-loader">
+                        <div class="spinner-grow text-accent" style="width: 3rem; height: 3rem;" role="status"></div>
+                        <h5 class="fw-bold mt-3 text-light">Synthesizing Pixels...</h5>
+                        <p class="text-muted small">Muse Spark is generating the art layers. Please wait ~2.5s.</p>
+                    </div>
+
+                    <!-- Output Canvas Image tag (hidden) -->
+                    <img src="" class="img-fluid object-fit-contain d-none rounded border border-secondary shadow-lg" id="canvas-image" style="max-height: 480px;" alt="Generated Output">
+                </div>
+
+                <!-- Canvas Telemetry details block -->
+                <div class="card-footer bg-dark-subtle p-3 border-top border-secondary-subtle">
+                    <div class="row align-items-center g-3">
+                        <div class="col-md-9 text-muted small">
+                            <div class="mb-1 text-truncate"><strong>Prompt used:</strong> <span id="meta-prompt">-</span></div>
+                            <div class="d-flex flex-wrap gap-3">
+                                <span><strong>Seed:</strong> <span id="meta-seed" class="font-monospace">-</span></span>
+                                <span><strong>Style:</strong> <span id="meta-style" class="badge bg-secondary font-monospace">-</span></span>
+                                <span><strong>Latency:</strong> <span id="meta-latency" class="font-monospace text-info">-</span></span>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-md-end">
+                            <a href="#" class="btn btn-outline-accent disabled w-100" id="download-btn">
+                                <i class="bi bi-download"></i> Download Image
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- History container -->
+    <h3 class="h4 mb-4">Generation History</h3>
+    <div class="row g-3" id="gen-history-list">
+        <!-- Rendered dynamically -->
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Image generation controller script -->
+<script src="{{ url_for('static', filename='js/image_gen.js') }}"></script>
+{% endblock %}

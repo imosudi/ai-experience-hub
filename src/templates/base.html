@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Muse Spark Explorer - An interactive showcasing of Meta Muse Spark multimodal AI capabilities.">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>{% block title %}Dashboard{% endblock %} | Muse Spark Explorer</title>
+    
+    <!-- Google Fonts - Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <!-- Prism.js Tomorrow Night theme for syntax highlighting -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <div class="app-wrapper">
+        <!-- Sidebar Navigation -->
+        {% if session.get('auth_token') %}
+        <nav class="sidebar">
+            <a href="{{ url_for('main.dashboard') }}" class="sidebar-brand">
+                <i class="bi bi-sparkles"></i>
+                <span class="fw-bold">Muse Spark Explorer</span>
+            </a>
+            
+            <div class="sidebar-nav">
+                <a href="{{ url_for('main.dashboard') }}" class="nav-link-custom {% if request.endpoint == 'main.dashboard' %}active{% endif %}">
+                    <i class="bi bi-grid-1x2-fill"></i> Dashboard
+                </a>
+                <a href="{{ url_for('chat.chat') }}" class="nav-link-custom {% if request.endpoint == 'chat.chat' %}active{% endif %}">
+                    <i class="bi bi-chat-left-text-fill"></i> Streaming Chat
+                </a>
+                <a href="{{ url_for('vision.vision') }}" class="nav-link-custom {% if request.endpoint == 'vision.vision' %}active{% endif %}">
+                    <i class="bi bi-eye-fill"></i> Vision Analysis
+                </a>
+                <a href="{{ url_for('image_gen.image_gen') }}" class="nav-link-custom {% if request.endpoint == 'image_gen.image_gen' %}active{% endif %}">
+                    <i class="bi bi-palette-fill"></i> Image Generation
+                </a>
+                <a href="{{ url_for('agent.agent_view') }}" class="nav-link-custom {% if request.endpoint == 'agent.agent_view' %}active{% endif %}">
+                    <i class="bi bi-robot"></i> Web Page Agent
+                </a>
+                <a href="{{ url_for('main.status') }}" class="nav-link-custom {% if request.endpoint == 'main.status' %}active{% endif %}">
+                    <i class="bi bi-activity"></i> API Status
+                </a>
+                <a href="{{ url_for('main.settings') }}" class="nav-link-custom {% if request.endpoint == 'main.settings' %}active{% endif %}">
+                    <i class="bi bi-gear-fill"></i> Settings
+                </a>
+                <a href="{{ url_for('main.about') }}" class="nav-link-custom {% if request.endpoint == 'main.about' %}active{% endif %}">
+                    <i class="bi bi-info-circle-fill"></i> About Model
+                </a>
+            </div>
+            
+            <div class="sidebar-footer">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="small text-muted"><i class="bi bi-shield-check text-success"></i> Authenticated</span>
+                    <button class="btn btn-sm btn-outline-secondary theme-toggle-btn" id="theme-toggle" title="Toggle Theme">
+                        <i class="bi bi-sun-fill"></i>
+                    </button>
+                </div>
+                <a href="{{ url_for('auth.logout') }}" class="btn btn-sm btn-outline-danger w-100">
+                    <i class="bi bi-box-arrow-left"></i> Logout Session
+                </a>
+            </div>
+        </nav>
+
+        <!-- Mobile Header -->
+        <header class="mobile-header">
+            <button class="btn btn-outline-secondary" id="sidebar-toggle">
+                <i class="bi bi-list"></i>
+            </button>
+            <span class="fw-bold">Muse Spark Explorer</span>
+            <div style="width: 42px;"></div> <!-- Spacer -->
+        </header>
+        {% endif %}
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Toast notification container -->
+            <div class="position-fixed top-0 end-0 p-3" style="z-index: 1080;" id="toast-container"></div>
+            
+            <!-- Flask Flash messages inside container -->
+            <div class="container-fluid pt-4 px-4">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                  {% if messages %}
+                    {% for category, message in messages %}
+                      <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible fade show glass-card border-0 mb-4" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                      </div>
+                    {% endfor %}
+                  {% endif %}
+                {% endwith %}
+            </div>
+
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- Bootstrap Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    
+    <!-- Marked.js for Markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <!-- Prism.js Core and languages -->
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    
+    <!-- Custom Theme JS -->
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
