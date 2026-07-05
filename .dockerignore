@@ -1,0 +1,26 @@
+# Git
+.git
+.gitignore
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local configuration and telemetry
+.env
+logs/
+data/
+venv/
+src/static/generated/
+src/static/uploads/
+
+# Documentation and references
+README.md
+Dockerfile
+.dockerignore
+tests/
